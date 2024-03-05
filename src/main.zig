@@ -1,6 +1,5 @@
 const std = @import("std");
-const Tokenizer = @import("tokenizer.zig").Tokenizer;
-const _ = std.zig.Tokenizer;
+const Ast = @import("Ast.zig");
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -21,10 +20,25 @@ pub fn main() !void {
     const source = try file.readToEndAllocOptions(allocator, std.math.maxInt(u32), null, @alignOf(u8), 0);
     defer allocator.free(source);
 
-    var tokenizer = Tokenizer.init(source);
-    while (true) {
-        const token = tokenizer.next();
-        tokenizer.dump(&token);
-        if (token.tag == .eof) break;
+    var tree = try Ast.parse(allocator, source);
+    defer tree.deinit(allocator);
+
+    std.debug.print("source code:\n{s}\n", .{tree.source});
+    std.debug.print("tokens:\n", .{});
+    for (tree.tokens.items(.tag)) |tag| {
+        std.debug.print("{s}\n", .{tag.symbol()});
+    }
+
+    std.debug.print("\nAstNodes:\n", .{});
+    for (0..tree.nodes.len) |i| {
+        std.debug.print(
+            "{d}: tag {s: <16} lhs {}\t rhs {} \n",
+            .{
+                i,
+                @tagName(tree.nodes.items(.tag)[i]),
+                tree.nodes.items(.data)[i].lhs,
+                tree.nodes.items(.data)[i].rhs,
+            },
+        );
     }
 }
