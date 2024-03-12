@@ -4,6 +4,8 @@ pub const Token = struct {
     tag: Tag,
     loc: Loc,
 
+    pub const List = std.MultiArrayList(Token);
+
     pub const Loc = struct {
         start: usize,
         end: usize,
@@ -170,7 +172,7 @@ pub const Tokenizer = struct {
                 },
 
                 .int => switch (c) {
-                    '_', 'a'...'d', 'f'...'o', 'q'...'z', 'A'...'D', 'F'...'O', 'Q'...'Z', '0'...'9' => {},
+                    '0'...'9' => {},
                     else => break,
                 },
             }
